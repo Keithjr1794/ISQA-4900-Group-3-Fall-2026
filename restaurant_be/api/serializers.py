@@ -9,6 +9,11 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(
+        source='category.name',
+        read_only=True,
+    )
+
     class Meta:
         model = Restaurant
         fields = '__all__'
@@ -16,6 +21,11 @@ class RestaurantSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        source='user.username',
+        read_only=True,
+    )
+
     class Meta:
         model = Review
         fields = '__all__'

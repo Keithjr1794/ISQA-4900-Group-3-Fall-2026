@@ -1,10 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+
 from .views import (
     CategoryViewSet,
     RestaurantViewSet,
     ReviewViewSet,
-    SavedRestaurantViewSet
+    SavedRestaurantViewSet,
 )
 
 router = DefaultRouter()
@@ -15,7 +16,7 @@ router.register(r'reviews', ReviewViewSet)
 router.register(
     r'saved-restaurants',
     SavedRestaurantViewSet,
-    basename='saved-restaurant'
+    basename='saved-restaurant',
 )
 
 urlpatterns = [

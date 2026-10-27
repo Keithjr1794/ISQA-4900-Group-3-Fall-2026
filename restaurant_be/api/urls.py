@@ -6,6 +6,7 @@ from .views import (
     RestaurantViewSet,
     ReviewViewSet,
     SavedRestaurantViewSet,
+    RegisterView,
     current_user,
 )
 
@@ -21,6 +22,15 @@ router.register(
 )
 
 urlpatterns = [
-    path('me/', current_user, name='current-user'),
+    path(
+        'register/',
+        RegisterView.as_view(),
+        name='register',
+    ),
+    path(
+        'me/',
+        current_user,
+        name='current-user',
+    ),
     path('', include(router.urls)),
 ]

@@ -1,12 +1,15 @@
-from rest_framework import viewsets, filters
+from django.contrib.auth.models import User
+from django_filters.rest_framework import DjangoFilterBackend
+
+from rest_framework import viewsets, filters, generics
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import (
+    AllowAny,
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
 )
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.response import Response
 
 from .permissions import IsOwnerOrReadOnly
 from .models import Category, Restaurant, Review, SavedRestaurant
@@ -15,6 +18,7 @@ from .serializers import (
     RestaurantSerializer,
     ReviewSerializer,
     SavedRestaurantSerializer,
+    RegisterSerializer,
 )
 
 
@@ -29,11 +33,10 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     serializer_class = RestaurantSerializer
 
     permission_classes = [
-        IsAuthenticatedOrReadOnly,
+        IsAuthenticated,
         IsOwnerOrReadOnly,
     ]
 
-    # Search restaurants and filter by category.
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -46,7 +49,11 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.select_related('user', 'restaurant').all()
+    queryset = Review.objects.select_related(
+        'user',
+        'restaurant',
+    ).all()
+
     serializer_class = ReviewSerializer
 
     permission_classes = [
@@ -54,7 +61,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         IsOwnerOrReadOnly,
     ]
 
-    # Show reviews for a specific restaurant.
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['restaurant']
 
@@ -80,15 +86,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
             serializer.instance.restaurant,
         )
 
-        if Review.objects.filter(
+        duplicate = Review.objects.filter(
             user=serializer.instance.user,
             restaurant=restaurant,
-        ).exclude(pk=serializer.instance.pk).exists():
+        ).exclude(pk=serializer.instance.pk).exists()
+
+        if duplicate:
             raise ValidationError({
-                'restaurant': (
-                    'You already reviewed this restaurant. '
-                    'Please edit your existing review.'
-                )
+                'restaurant': 'You already reviewed this restaurant.'
             })
 
         serializer.save()
@@ -98,7 +103,6 @@ class SavedRestaurantViewSet(viewsets.ModelViewSet):
     serializer_class = SavedRestaurantSerializer
     permission_classes = [IsAuthenticated]
 
-    # Users can access only their own saved restaurants.
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return SavedRestaurant.objects.filter(
@@ -129,15 +133,18 @@ class SavedRestaurantViewSet(viewsets.ModelViewSet):
             serializer.instance.restaurant,
         )
 
-        if SavedRestaurant.objects.filter(
+        duplicate = SavedRestaurant.objects.filter(
             user=self.request.user,
             restaurant=restaurant,
-        ).exclude(pk=serializer.instance.pk).exists():
+        ).exclude(pk=serializer.instance.pk).exists()
+
+        if duplicate:
             raise ValidationError({
                 'restaurant': 'You already saved this restaurant.'
             })
 
         serializer.save()
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -146,3 +153,10 @@ def current_user(request):
         'id': request.user.id,
         'username': request.user.username,
     })
+
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    serializer_class = RegisterSerializer

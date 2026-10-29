@@ -149,9 +149,12 @@ class SavedRestaurantViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
+    profile = getattr(request.user, 'profile', None)
+
     return Response({
         'id': request.user.id,
         'username': request.user.username,
+        'display_name': profile.display_name if profile else '',
     })
 
 

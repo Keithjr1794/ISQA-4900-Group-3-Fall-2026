@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from .models import Category, Restaurant, Review, SavedRestaurant, UserProfile
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -46,6 +47,11 @@ class SavedRestaurantSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    display_name = serializers.CharField(
+    max_length=100,
+    required=False,
+    allow_blank=True,
+    )
     email = serializers.EmailField(
         required=True,
         validators=[
@@ -79,6 +85,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             'email',
             'first_name',
             'last_name',
+            'display_name',
         )
         extra_kwargs = {
             'first_name': {'required': False},
@@ -107,7 +114,15 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    def create(self, validated_data):
-        validated_data.pop('password2')
+def create(self, validated_data):
+    validated_data.pop('password2')
+    display_name = validated_data.pop('display_name', '')
 
-        return User.objects.create_user(**validated_data)
+    user = User.objects.create_user(**validated_data)
+
+    UserProfile.objects.create(
+        user=user,
+        display_name=display_name,
+    )
+
+    return user

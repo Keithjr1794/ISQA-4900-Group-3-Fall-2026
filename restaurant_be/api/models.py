@@ -27,7 +27,7 @@ class Restaurant(models.Model):
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=50)
-    zip_code = models.Charfield(max_length=10, blank=True)
+    zip_code = models.CharField(max_length=10, blank=True)
     description = models.TextField(blank=True)
     category = models.ForeignKey(
         Category,

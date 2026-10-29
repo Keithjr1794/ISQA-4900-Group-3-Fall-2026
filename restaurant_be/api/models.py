@@ -2,9 +2,20 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile'
+    )
+    display_name = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return self.user.username
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
 
     def __str__(self):
         return self.name
@@ -12,9 +23,11 @@ class Category(models.Model):
 
 class Restaurant(models.Model):
     name = models.CharField(max_length=200)
+    phone_number = models.CharField(max_length=30, blank=True)
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=50)
+    zip_code = models.Charfield(max_length=10, blank=True)
     description = models.TextField(blank=True)
     category = models.ForeignKey(
         Category,
@@ -47,6 +60,7 @@ class Review(models.Model):
         ]
     )
     comment = models.TextField()
+    visit_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -80,6 +94,7 @@ class SavedRestaurant(models.Model):
         choices=STATUS_CHOICES,
         default='want_to_visit'
     )
+    private_note = models.TextField(blank=True)
 
     class Meta:
         constraints = [

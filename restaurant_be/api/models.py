@@ -62,14 +62,7 @@ class Review(models.Model):
     comment = models.TextField()
     visit_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'restaurant'],
-                name='unique_user_restaurant_review'
-            )
-        ]
+    
 
     def __str__(self):
         return f"{self.user.username} - {self.restaurant.name}"

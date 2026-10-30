@@ -65,39 +65,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     filterset_fields = ['restaurant']
 
     def perform_create(self, serializer):
-        restaurant = serializer.validated_data['restaurant']
-
-        if Review.objects.filter(
-            user=self.request.user,
-            restaurant=restaurant,
-        ).exists():
-            raise ValidationError({
-                'restaurant': (
-                    'You already reviewed this restaurant. '
-                    'Please edit your existing review.'
-                )
-            })
-
         serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):
-        restaurant = serializer.validated_data.get(
-            'restaurant',
-            serializer.instance.restaurant,
-        )
-
-        duplicate = Review.objects.filter(
-            user=serializer.instance.user,
-            restaurant=restaurant,
-        ).exclude(pk=serializer.instance.pk).exists()
-
-        if duplicate:
-            raise ValidationError({
-                'restaurant': 'You already reviewed this restaurant.'
-            })
-
         serializer.save()
-
+        
 
 class SavedRestaurantViewSet(viewsets.ModelViewSet):
     serializer_class = SavedRestaurantSerializer
